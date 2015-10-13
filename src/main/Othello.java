@@ -5,321 +5,44 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 public final class Othello extends JFrame implements Runnable {
-
-	private final static class GameBoard {
-		private static final byte[][] DEFAULT_GAMEBOARD = new byte[][] { { 0, 0, 0, 0, 0, 0, 0, 0 },
-				{ 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 1, 2, 0, 0, 0 },
-				{ 0, 0, 0, 2, 1, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 },
-				{ 0, 0, 0, 0, 0, 0, 0, 0 }, };
-
-		private byte[][] gameboard = new byte[8][8];
-
-		public GameBoard() {
-
-		}
-
-		private GameBoard(byte[][] gameboard) {
-			this.gameboard = gameboard.clone();
-		}
-
-		@Override
-		public Object clone() {
-			return new GameBoard(gameboard);
-		}
-
-		public boolean gameOver() {
-			return !playerHasMove(BLACK) && !playerHasMove(WHITE);
-		}
-
-		public byte get(int x, int y) {
-			if (x > 7 || y > 7 || x < 0 || y < 0)
-				throw new IllegalArgumentException("x and y must be within the doman of all real numbers [0, 7]");
-			return gameboard[x][y];
-		}
-
-		public byte getWinner() {
-			int blackCount = 0, whiteCount = 0;
-			for (byte[] row : gameboard)
-				for (byte b : row)
-					if (b == BLACK)
-						blackCount++;
-					else if (b == WHITE)
-						whiteCount++;
-			if (whiteCount == blackCount)
-				return 0;
-			return whiteCount > blackCount ? WHITE : BLACK;
-		}
-
-		public boolean place(int x, int y, byte player) {
-			if (x > 7 || y > 7 || x < 0 || y < 0)
-				throw new IllegalArgumentException("x and y must be within the doman of all real numbers [0, 7]");
-			if (gameboard[x][y] != 0)
-				return false;
-			boolean valid = false;
-			for (int x2 = x + 1, y2 = y + 1; x2 < 8 && y2 < 8; x2++, y2++) {
-				if (gameboard[x2][y2] == 0)
-					break;
-				if (gameboard[x2][y2] == player && x2 != x + 1) {
-					for (; x2 > x && y2 > y; x2--, y2--) {
-						gameboard[x2][y2] = player;
-					}
-					valid = true;
-					break;
-				} else if (gameboard[x2][y2] == player && x2 == x + 1)
-					break;
-			}
-			for (int x2 = x + 1; x2 < 8; x2++) {
-				if (gameboard[x2][y] == 0)
-					break;
-				if (gameboard[x2][y] == player && x2 != x + 1) {
-					for (; x2 > x; x2--) {
-						gameboard[x2][y] = player;
-					}
-					valid = true;
-					break;
-				} else if (gameboard[x2][y] == player && x2 == x + 1)
-					break;
-			}
-			for (int x2 = x + 1, y2 = y - 1; x2 < 8 && y2 > -1; x2++, y2--) {
-				if (gameboard[x2][y2] == 0)
-					break;
-				if (gameboard[x2][y2] == player && x2 != x + 1) {
-					for (; x2 > x && y2 < y; x2--, y2++) {
-						gameboard[x2][y2] = player;
-					}
-					valid = true;
-					break;
-				} else if (gameboard[x2][y2] == player && x2 == x + 1)
-					break;
-			}
-			for (int y2 = y - 1; y2 > -1; y2--) {
-				if (gameboard[x][y2] == 0)
-					break;
-				if (gameboard[x][y2] == player && y2 != y - 1) {
-					for (; y2 < y; y2++) {
-						gameboard[x][y2] = player;
-					}
-					valid = true;
-					break;
-				} else if (gameboard[x][y2] == player && y2 == y - 1)
-					break;
-			}
-			for (int y2 = y + 1; y2 < 8; y2++) {
-				if (gameboard[x][y2] == 0)
-					break;
-				if (gameboard[x][y2] == player && y2 != y + 1) {
-					for (; y2 > y; y2--) {
-						gameboard[x][y2] = player;
-					}
-					valid = true;
-					break;
-				} else if (gameboard[x][y2] == player && y2 == y + 1)
-					break;
-			}
-			for (int x2 = x - 1; x2 > -1; x2--) {
-				if (gameboard[x2][y] == 0)
-					break;
-				if (gameboard[x2][y] == player && x2 != x - 1) {
-					for (; x2 < x; x2++) {
-						gameboard[x2][y] = player;
-					}
-					valid = true;
-					break;
-				} else if (gameboard[x2][y] == player && x2 == x - 1)
-					break;
-			}
-			for (int x2 = x - 1, y2 = y + 1; x2 > -1 && y2 < 8; x2--, y2++) {
-				if (gameboard[x2][y2] == 0)
-					break;
-				if (gameboard[x2][y2] == player && x2 != x - 1) {
-					for (; x2 < x && y2 > y; x2++, y2--) {
-						gameboard[x2][y2] = player;
-					}
-					valid = true;
-					break;
-				} else if (gameboard[x2][y2] == player && x2 == x - 1)
-					break;
-			}
-			for (int x2 = x - 1, y2 = y - 1; x2 > -1 && y2 > -1; x2--, y2--) {
-				if (gameboard[x2][y2] == 0)
-					break;
-				if (gameboard[x2][y2] == player && x2 != x - 1) {
-					for (; x2 < x && y2 < y; x2++, y2++) {
-						gameboard[x2][y2] = player;
-					}
-					valid = true;
-					break;
-				} else if (gameboard[x2][y2] == player && x2 == x - 1)
-					break;
-			}
-			if (valid)
-				gameboard[x][y] = player;
-			return valid;
-		}
-
-		public boolean playerHasMove(byte player) {
-			for (int x = 0; x < 8; x++) {
-				for (int y = 0; y < 8; y++) {
-					if (validMove(x, y, player)) {
-						return true;
-					}
-				}
-			}
-			return false;
-		}
-
-		public void reset() {
-			for (int x = 0; x < 8; x++) {
-				for (int y = 0; y < 8; y++) {
-					gameboard[x][y] = DEFAULT_GAMEBOARD[x][y];
-				}
-			}
-		}
-
-		private boolean validMove(int x, int y, byte player) {
-			if (x > 7 || y > 7 || x < 0 || y < 0)
-				throw new IllegalArgumentException("x and y must be within the doman of all real numbers [0, 7]");
-			if (gameboard[x][y] != 0)
-				return false;
-			for (int x2 = x + 1, y2 = y + 1; x2 < 8 && y2 < 8; x2++, y2++) {
-				if (gameboard[x2][y2] == 0)
-					break;
-				if (gameboard[x2][y2] == player && x2 != x + 1)
-					return true;
-				else if (gameboard[x2][y2] == player && x2 == x + 1)
-					break;
-			}
-			for (int x2 = x + 1; x2 < 8; x2++) {
-				if (gameboard[x2][y] == 0)
-					break;
-				if (gameboard[x2][y] == player && x2 != x + 1)
-					return true;
-				else if (gameboard[x2][y] == player && x2 == x + 1)
-					break;
-			}
-			for (int x2 = x + 1, y2 = y - 1; x2 < 8 && y2 > -1; x2++, y2--) {
-				if (gameboard[x2][y2] == 0)
-					break;
-				if (gameboard[x2][y2] == player && x2 != x + 1)
-					return true;
-				else if (gameboard[x2][y2] == player && x2 == x + 1)
-					break;
-			}
-			for (int y2 = y - 1; y2 > -1; y2--) {
-				if (gameboard[x][y2] == 0)
-					break;
-				if (gameboard[x][y2] == player && y2 != y - 1)
-					return true;
-				else if (gameboard[x][y2] == player && y2 == y - 1)
-					break;
-			}
-			for (int y2 = y + 1; y2 < 8; y2++) {
-				if (gameboard[x][y2] == 0)
-					break;
-				if (gameboard[x][y2] == player && y2 != y + 1)
-					return true;
-				else if (gameboard[x][y2] == player && y2 == y + 1)
-					break;
-			}
-			for (int x2 = x - 1; x2 > -1; x2--) {
-				if (gameboard[x2][y] == 0)
-					break;
-				if (gameboard[x2][y] == player && x2 != x - 1)
-					return true;
-				else if (gameboard[x2][y] == player && x2 == x - 1)
-					break;
-			}
-			for (int x2 = x - 1, y2 = y + 1; x2 > -1 && y2 < 8; x2--, y2++) {
-				if (gameboard[x2][y2] == 0)
-					break;
-				if (gameboard[x2][y2] == player && x2 != x - 1)
-					return true;
-				else if (gameboard[x2][y2] == player && x2 == x - 1)
-					break;
-			}
-			for (int x2 = x - 1, y2 = y - 1; x2 > -1 && y2 > -1; x2--, y2--) {
-				if (gameboard[x2][y2] == 0)
-					break;
-				if (gameboard[x2][y2] == player && x2 != x - 1)
-					return true;
-				else if (gameboard[x2][y2] == player && x2 == x - 1)
-					break;
-			}
-			return false;
-		}
-	}
-
-	private final class KeyHandler extends KeyAdapter {
-		@Override
-		public void keyReleased(KeyEvent e) {
-			if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-				System.exit(0);
-			}
-		}
-	}
-
-	private final class MouseHandler extends MouseAdapter {
-		private final Othello game;
-		private volatile int x, y;
-
-		public MouseHandler(final Othello game) {
-			this.game = game;
-		}
-
-		public synchronized int getX() {
-			return x;
-		}
-
-		public synchronized int getY() {
-			return y;
-		}
-
-		@Override
-		public void mouseReleased(MouseEvent e) {
-			x = e.getX();
-			y = e.getY();
-			synchronized (game) {
-				game.notifyAll();
-			}
-		}
-	}
-
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -3235755634104439327L;
 
-	private static final byte BLACK = 1, WHITE = 2;
+	public static final byte BLACK = (byte) 1, WHITE = (byte) 2;
+
+	private static final Color BOARD_COLOR = new Color((int) (0xFF * 0.65f) << 8),
+			BOARD_SQUARE_COLOR = new Color((0xFF / 2) << 8);
 
 	public static void main(String[] args) {
-		new Othello().run();
+		new Othello(600, 600).run();
 	}
-	private int squareWidth = 0, squareHeight = 0;
+
+	private final int squareWidth, squareHeight;
 	private final GameBoard gameBoard = new GameBoard();
 
 	private final MouseHandler mouseHandler = new MouseHandler(this);
-	private byte player = 1;
+	private byte player = (byte) 1;
 
 	private BufferedImage drawImage;
 
-	public Othello() {
+	public Othello(int width, int height) {
 		this.setUndecorated(true);
 		this.setResizable(false);
-		this.setBounds((int) (Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 2) - 300,
-				(int) (Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 2) - 300, 600, 600);
+		this.setBounds((int) (Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 2) - (width / 2),
+				(int) (Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 2) - (height / 2), width, height);
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.addMouseListener(mouseHandler);
 		this.addKeyListener(new KeyHandler());
+		squareWidth = width / 8;
+		squareHeight = height / 8;
 	}
 
 	@Override
@@ -329,14 +52,12 @@ public final class Othello extends JFrame implements Runnable {
 		}
 		Graphics2D g2 = (Graphics2D) drawImage.getGraphics();
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g2.setColor(new Color((int) (0xFF * 0.65) << 8));
+		g2.setColor(BOARD_COLOR);
 		g2.fillRect(0, 0, this.getWidth(), this.getHeight());
-		squareWidth = (this.getWidth()) / 8;
-		squareHeight = (this.getHeight()) / 8;
 		for (int x = 0; x < 8; x++) {
 			for (int y = 0; y < 8; y++) {
-				for (int i = 0; i < 3; i++) {
-					g2.setColor(new Color((0xFF / 2) << 8));
+				g2.setColor(BOARD_SQUARE_COLOR);
+				for (int i = 0; i < 3; i++) { // Drawing borders
 					g2.drawRect((x * squareWidth) - i, (y * squareHeight) - i, squareWidth + (i * 2),
 							squareHeight + (i * 2));
 				}
@@ -391,8 +112,7 @@ public final class Othello extends JFrame implements Runnable {
 				do {
 					try {
 						synchronized (this) {
-							this.wait(); // Waiting for mouse handler to notify
-											// main thread of a release event
+							this.wait();
 						}
 					} catch (InterruptedException e) {
 					}
