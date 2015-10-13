@@ -97,9 +97,14 @@ public final class Othello extends JFrame implements Runnable {
 		}
 		g.drawImage(drawImage, 0, 0, null);
 	}
+	
+	public static byte getOppositePlayer(byte player) {
+		return player == BLACK ? WHITE : BLACK;
+	}
 
 	@Override
 	public void run() {
+		OthelloAI ai = new OthelloAI(WHITE);
 		setVisible(true);
 		gameBoard.reset();
 		repaint();
@@ -109,6 +114,10 @@ public final class Othello extends JFrame implements Runnable {
 			player = BLACK;
 			repaint();
 			do {
+				if (player == ai.getPlayer()) {
+					Move move = ai.getAIMove((GameBoard) gameBoard.clone());
+					gameBoard.place(move.getX(), move.getY(), ai.getPlayer());
+				} else {
 				do {
 					try {
 						synchronized (this) {
@@ -118,6 +127,7 @@ public final class Othello extends JFrame implements Runnable {
 					}
 				} while (!gameBoard.place((mouseHandler.getX()) / squareWidth, (mouseHandler.getY()) / squareHeight,
 						player));
+				}
 				player = player == BLACK ? WHITE : BLACK;
 				if (!gameBoard.playerHasMove(player)) {
 					player = player == BLACK ? WHITE : BLACK;

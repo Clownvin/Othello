@@ -7,18 +7,28 @@ public final class GameBoard {
 			{ 0, 0, 0, 0, 0, 0, 0, 0 }, };
 
 	private byte[][] gameboard = new byte[8][8];
+	private int movesLeft = 60;
 
 	public GameBoard() {
 
 	}
+	
+	public int getMovesLeft() {
+		return movesLeft;
+	}
 
-	private GameBoard(byte[][] gameboard) {
-		this.gameboard = gameboard.clone();
+	private GameBoard(final byte[][] gameboard, final int movesLeft) {
+		for (int x = 0; x < 8; x++) {
+			for (int y = 0; y < 8; y++) {
+				this.gameboard[x][y] = gameboard[x][y];
+			}
+		}
+		this.movesLeft = movesLeft;
 	}
 
 	@Override
 	public Object clone() {
-		return new GameBoard(gameboard);
+		return new GameBoard(gameboard, movesLeft);
 	}
 
 	public boolean gameOver() {
@@ -146,8 +156,10 @@ public final class GameBoard {
 			} else if (gameboard[x2][y2] == player && x2 == x - 1)
 				break;
 		}
-		if (valid)
+		if (valid) {
 			gameboard[x][y] = player;
+			movesLeft --;
+		}
 		return valid;
 	}
 
@@ -163,6 +175,7 @@ public final class GameBoard {
 	}
 
 	public void reset() {
+		movesLeft = 60;
 		for (int x = 0; x < 8; x++) {
 			for (int y = 0; y < 8; y++) {
 				gameboard[x][y] = DEFAULT_GAMEBOARD[x][y];
